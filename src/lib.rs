@@ -1,4 +1,5 @@
 pub mod args;
+pub mod finder;
 pub mod hash;
 
 #[cfg(test)]
