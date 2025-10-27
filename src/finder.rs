@@ -10,7 +10,7 @@ pub fn find_hashes(target_zeros: usize, target_count: usize) {
     let results = Arc::new(std::sync::Mutex::new(Vec::new()));
 
     let num_threads = num_cpus::get();
-    let mut handles = vec![];
+    let mut handles = Vec::with_capacity(num_threads);
 
     for _ in 0..num_threads {
         let should_stop = Arc::clone(&should_stop);
@@ -20,8 +20,8 @@ pub fn find_hashes(target_zeros: usize, target_count: usize) {
         let handle = thread::spawn(move || {
             while !should_stop.load(Ordering::Relaxed) {
                 let num = counter.fetch_add(1, Ordering::Relaxed);
-
                 let hash = compute_sha256(num);
+
                 if has_trailing_zeros(&hash, target_zeros) {
                     let mut results_guard = results.lock().unwrap();
 
@@ -30,9 +30,10 @@ pub fn find_hashes(target_zeros: usize, target_count: usize) {
                         break;
                     }
 
-                    results_guard.push((num, hash.clone()));
                     println!("{}, \"{}\"", num, hash);
-                    io::stdout().flush().unwrap();
+                    let _ = io::stdout().flush();
+
+                    results_guard.push((num, hash));
 
                     if results_guard.len() >= target_count {
                         should_stop.store(true, Ordering::Relaxed);
@@ -45,6 +46,6 @@ pub fn find_hashes(target_zeros: usize, target_count: usize) {
     }
 
     for handle in handles {
-        handle.join().unwrap();
+        let _ = handle.join();
     }
 }
