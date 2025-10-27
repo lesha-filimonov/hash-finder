@@ -6,3 +6,7 @@ pub fn compute_sha256(num: u64) -> String {
     let hash = hasher.finalize();
     hex::encode(hash)
 }
+
+pub fn has_trailing_zeros(hash: &str, n: usize) -> bool {
+    hash.ends_with(&"0".repeat(n))
+}
